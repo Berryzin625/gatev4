@@ -1,5 +1,5 @@
 // pages/api/assign-machine.ts
-import { connectToDatabase } from '../../utils/mongodb';
+import { connectToDatabase } from '../../lib/dbConnect';
 import { ObjectId } from 'mongodb';
 
 export default async function handler(req, res) {
