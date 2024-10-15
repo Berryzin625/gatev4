@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI; // Certifique-se de que esta variável está no .env
+const uri = process.env.MONGODB_URI;
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
@@ -8,7 +8,7 @@ if (!uri) {
   throw new Error("Por favor, defina a MONGODB_URI no arquivo .env");
 }
 
-let globalWithMongoClientPromise = global as typeof globalThis & {
+const globalWithMongoClientPromise = global as typeof globalThis & {
   _mongoClientPromise: Promise<MongoClient>;
 };
 
