@@ -1,30 +1,35 @@
 // pages/api/assign-machine.ts
+import { NextApiRequest, NextApiResponse } from 'next';
 import dbConnect from '../../lib/dbConnect';
-import { ObjectId } from 'mongodb';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import User from '../../models/User';
+import Machine from '../../models/Machine';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     await dbConnect();
 
     if (req.method === 'POST') {
+        const { username, machineId } = req.body;
+
         try {
-            const { userId, machineId } = req.body;
+            // Encontrar o usuário e a máquina
+            const user = await User.findOne({ username });
+            const machine = await Machine.findById(machineId);
 
-            // Lógica para associar a máquina ao usuário
-            const result = await db.collection('users').updateOne(
-                { _id: new ObjectId(userId) },
-                { $set: { machineId: machineId } }
-            );
-
-            if (result.modifiedCount === 1) {
-                res.status(200).json({ message: 'Máquina associada com sucesso' });
-            } else {
-                res.status(404).json({ message: 'Usuário não encontrado' });
+            if (!user || !machine) {
+                return res.status(404).json({ message: 'Usuário ou máquina não encontrado' });
             }
+
+            // Atribuir a máquina ao usuário
+            user.machineId = machine._id; // Atribui o ID da máquina ao usuário
+            await user.save();
+
+            return res.status(200).json({ message: 'Máquina atribuída com sucesso' });
         } catch (error) {
-            res.status(500).json({ message: 'Erro interno', error: error.message });
+            console.error('Erro ao atribuir a máquina:', error);
+            return res.status(500).json({ message: 'Erro ao atribuir a máquina' });
         }
     } else {
-        res.status(405).json({ message: 'Método não permitido' });
+        res.setHeader('Allow', ['POST']);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
     }
 }
