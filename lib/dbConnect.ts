@@ -1,12 +1,16 @@
 // lib/dbConnect.ts
 import mongoose from 'mongoose';
 
-const connection = {};
+interface Connection {
+    isConnected?: number; // Propriedade opcional para o estado da conexão
+}
+
+const connection: Connection = {};
 
 // Função para conectar ao banco de dados
 async function dbConnect() {
     if (connection.isConnected) {
-        return;
+        return; // Se já estiver conectado, retorna
     }
 
     const db = await mongoose.connect(process.env.MONGODB_URI || '', {
@@ -14,7 +18,7 @@ async function dbConnect() {
         useUnifiedTopology: true,
     });
 
-    connection.isConnected = db.connection.readyState;
+    connection.isConnected = db.connection.readyState; // Atualiza o estado da conexão
 }
 
 export default dbConnect;
