@@ -7,7 +7,8 @@ export default function AddMachine() {
     const [password, setPassword] = useState('');
     const [isAdding, setIsAdding] = useState(false);
 
-    const handleAddMachine = async (e) => {
+    // Defina o tipo de 'e' explicitamente como React.FormEvent
+    const handleAddMachine = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         setIsAdding(true);
