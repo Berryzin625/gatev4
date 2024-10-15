@@ -1,27 +1,26 @@
-import mongoose from 'mongoose';
+import { MongoClient } from 'mongodb';
 
-const connection = { isConnected: false };
+const uri = process.env.MONGODB_URI; // Certifique-se de que esta variável está no .env
+let client: MongoClient;
+let clientPromise: Promise<MongoClient>;
 
-async function dbConnect() {
-  if (connection.isConnected) {
-    return;
-  }
-
-  const mongodbUri = process.env.MONGODB_URI;
-
-  if (!mongodbUri) {
-    throw new Error('A variável de ambiente MONGODB_URI não está definida.');
-  }
-
-  try {
-    const db = await mongoose.connect(mongodbUri, {
-      
-    });
-
-    connection.isConnected = db.connection.readyState === 1; // 1 significa conectado
-  } catch (error) {
-    console.error('Erro ao conectar ao banco de dados:', error);
-  }
+if (!uri) {
+  throw new Error("Por favor, defina a MONGODB_URI no arquivo .env");
 }
 
-export default dbConnect;
+let globalWithMongoClientPromise = global as typeof globalThis & {
+  _mongoClientPromise: Promise<MongoClient>;
+};
+
+if (process.env.NODE_ENV === "development") {
+  if (!globalWithMongoClientPromise._mongoClientPromise) {
+    client = new MongoClient(uri);
+    globalWithMongoClientPromise._mongoClientPromise = client.connect();
+  }
+  clientPromise = globalWithMongoClientPromise._mongoClientPromise;
+} else {
+  client = new MongoClient(uri);
+  clientPromise = client.connect();
+}
+
+export default clientPromise;
