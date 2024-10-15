@@ -1,8 +1,9 @@
 // pages/api/assign-machine.ts
 import dbConnect from '../../lib/dbConnect';
 import { ObjectId } from 'mongodb';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     await dbConnect();
 
     if (req.method === 'POST') {
