@@ -1,22 +1,8 @@
 // pages/api/machines.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-import Machine from '../../models/Machine';
+import { connectToDatabase } from '../../utils/mongodb';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method === 'POST') {
-        try {
-            const machine = await Machine.create(req.body);
-            res.status(201).json(machine);
-        } catch (error) {
-            // Use type assertion para informar ao TypeScript que 'error' é um objeto
-            const message = (error as { message?: string }).message || 'Erro desconhecido';
-            res.status(400).json({ message });
-        }
-    } else if (req.method === 'GET') {
-        const machines = await Machine.find();
-        res.status(200).json(machines);
-    } else {
-        res.setHeader('Allow', ['GET', 'POST']);
-        res.status(405).end(`Method ${req.method} Not Allowed`);
-    }
+export default async function handler(req, res) {
+    const { db } = await connectToDatabase();
+    const machines = await db.collection('machines').find().toArray();
+    res.json(machines);
 }
