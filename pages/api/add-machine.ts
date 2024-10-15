@@ -1,5 +1,5 @@
 // pages/api/add-machine.ts
-import { connectToDatabase } from '../../lib/dbConnect.ts';
+import { connectToDatabase } from '../../lib/dbConnect';
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
