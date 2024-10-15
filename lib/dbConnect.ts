@@ -1,23 +1,27 @@
-// lib/dbConnect.ts
 import mongoose from 'mongoose';
 
-interface Connection {
-    isConnected?: number; // Propriedade opcional para o estado da conexão
-}
+const connection = { isConnected: false };
 
-const connection: Connection = {};
-
-// Função para conectar ao banco de dados
 async function dbConnect() {
-    if (connection.isConnected) {
-        return; // Se já estiver conectado, retorna
-    }
+  if (connection.isConnected) {
+    return;
+  }
 
-    const db = await mongoose.connect(process.env.MONGODB_URI || '', {
-        
+  const mongodbUri = process.env.MONGODB_URI;
+
+  if (!mongodbUri) {
+    throw new Error('A variável de ambiente MONGODB_URI não está definida.');
+  }
+
+  try {
+    const db = await mongoose.connect(mongodbUri, {
+      
     });
 
-    connection.isConnected = db.connection.readyState; // Atualiza o estado da conexão
+    connection.isConnected = db.connection.readyState === 1; // 1 significa conectado
+  } catch (error) {
+    console.error('Erro ao conectar ao banco de dados:', error);
+  }
 }
 
 export default dbConnect;
