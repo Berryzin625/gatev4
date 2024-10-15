@@ -1,8 +1,10 @@
 // pages/api/add-machine.ts
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectToDatabase from '../../lib/dbConnect'; // Importação correta
+import dbConnect from '../../lib/dbConnect'; // Corrigido para usar o Mongoose
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    await dbConnect(); // Conecta ao banco de dados
+
     if (req.method === 'POST') {
         const { ip, username, password } = req.body;
 
@@ -11,22 +13,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             return res.status(400).json({ message: 'Todos os campos são obrigatórios' });
         }
 
-        const { db } = await connectToDatabase();
-
         try {
-            // Insere a máquina no banco de dados
-            const result = await db.collection('machines').insertOne({
-                ip,
-                username,
-                password,
-                userId: null, // A máquina inicialmente não estará associada a nenhum usuário
-            });
+            const Machine = mongoose.model('Machine', new mongoose.Schema({
+                ip: String,
+                username: String,
+                password: String,
+                userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+            }));
 
-            if (result.acknowledged) { // Verifica se a inserção foi bem-sucedida
-                res.status(200).json({ message: 'Máquina adicionada com sucesso' });
-            } else {
-                res.status(500).json({ message: 'Erro ao adicionar máquina' });
-            }
+            // Insere a máquina no banco de dados
+            const machine = new Machine({ ip, username, password });
+            await machine.save();
+
+            res.status(200).json({ message: 'Máquina adicionada com sucesso' });
         } catch (error) {
             res.status(500).json({ message: 'Erro interno', error: error.message });
         }
