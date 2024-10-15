@@ -1,6 +1,7 @@
 // pages/api/add-machine.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import dbConnect from '../../lib/dbConnect'; // Corrigido para usar o Mongoose
+import mongoose from 'mongoose';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     await dbConnect(); // Conecta ao banco de dados
