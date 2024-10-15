@@ -1,26 +1,10 @@
+// lib/dbConnect.ts
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI;
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+const client = new MongoClient(process.env.MONGODB_URI || '');
 
-if (!uri) {
-  throw new Error("Por favor, defina a MONGODB_URI no arquivo .env");
+export default async function connectToDatabase() {
+    if (!client.isConnected()) await client.connect();
+    const db = client.db(process.env.DB_NAME);
+    return { db, client };
 }
-
-const globalWithMongoClientPromise = global as typeof globalThis & {
-  _mongoClientPromise: Promise<MongoClient>;
-};
-
-if (process.env.NODE_ENV === "development") {
-  if (!globalWithMongoClientPromise._mongoClientPromise) {
-    client = new MongoClient(uri);
-    globalWithMongoClientPromise._mongoClientPromise = client.connect();
-  }
-  clientPromise = globalWithMongoClientPromise._mongoClientPromise;
-} else {
-  client = new MongoClient(uri);
-  clientPromise = client.connect();
-}
-
-export default clientPromise;
