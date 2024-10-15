@@ -1,10 +1,20 @@
 // lib/dbConnect.ts
-import { MongoClient } from 'mongodb';
+import mongoose from 'mongoose';
 
-const client = new MongoClient(process.env.MONGODB_URI || '');
+const connection = {};
 
-export default async function connectToDatabase() {
-    if (!client.isConnected()) await client.connect();
-    const db = client.db(process.env.DB_NAME);
-    return { db, client };
+// Função para conectar ao banco de dados
+async function dbConnect() {
+    if (connection.isConnected) {
+        return;
+    }
+
+    const db = await mongoose.connect(process.env.MONGODB_URI || '', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    });
+
+    connection.isConnected = db.connection.readyState;
 }
+
+export default dbConnect;
