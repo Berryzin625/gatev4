@@ -1,35 +1,29 @@
 // pages/api/assign-machine.ts
-import { NextApiRequest, NextApiResponse } from 'next';
-import dbConnect from '../../lib/dbConnect';
-import User from '../../models/User';
-import Machine from '../../models/Machine';
+import { connectToDatabase } from '../../utils/mongodb';
+import { ObjectId } from 'mongodb';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    await dbConnect();
-
+export default async function handler(req, res) {
     if (req.method === 'POST') {
-        const { username, machineId } = req.body;
+        const { userId, machineId } = req.body;
+
+        const { db } = await connectToDatabase();
 
         try {
-            // Encontrar o usuário e a máquina
-            const user = await User.findOne({ username });
-            const machine = await Machine.findById(machineId);
+            // Atualiza a máquina associando ao usuário
+            const result = await db.collection('machines').updateOne(
+                { _id: new ObjectId(machineId) },
+                { $set: { userId: new ObjectId(userId) } }
+            );
 
-            if (!user || !machine) {
-                return res.status(404).json({ message: 'Usuário ou máquina não encontrado' });
+            if (result.modifiedCount > 0) {
+                res.status(200).json({ message: 'Máquina associada com sucesso' });
+            } else {
+                res.status(500).json({ message: 'Falha ao associar a máquina' });
             }
-
-            // Atribuir a máquina ao usuário
-            user.machineId = machine._id; // Atribui o ID da máquina ao usuário
-            await user.save();
-
-            return res.status(200).json({ message: 'Máquina atribuída com sucesso' });
         } catch (error) {
-            console.error('Erro ao atribuir a máquina:', error);
-            return res.status(500).json({ message: 'Erro ao atribuir a máquina' });
+            res.status(500).json({ message: 'Erro interno', error: error.message });
         }
     } else {
-        res.setHeader('Allow', ['POST']);
-        res.status(405).end(`Method ${req.method} Not Allowed`);
+        res.status(405).json({ message: 'Método não permitido' });
     }
 }
